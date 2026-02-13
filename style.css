@@ -121,10 +121,7 @@ h6 {
   height: 100%;
   z-index: -1;
   pointer-events: none;
-  background-color: var(--bg-primary);
-  background-image: linear-gradient(rgba(5, 5, 5, 0.85), rgba(5, 5, 5, 0.95)), url('assets/background.png');
-  background-size: cover;
-  background-position: center;
+  background-color: black;
 }
 
 #data-canvas {
