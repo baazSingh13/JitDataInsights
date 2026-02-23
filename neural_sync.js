@@ -33,14 +33,14 @@ class NeuralSyncAnimation {
 
     createBrain() {
         this.brainParticles = [];
-        const particleCount = 200;
+        const particleCount = 250;
         for (let i = 0; i < particleCount; i++) {
             this.brainParticles.push({
-                x: (Math.random() - 0.5) * 80,
-                y: (Math.random() - 0.4) * 60, // Slightly oval
-                z: (Math.random() - 0.5) * 40,
-                size: Math.random() * 2 + 1,
-                speed: 0.02 + Math.random() * 0.05,
+                x: (Math.random() - 0.5) * 180, // Increased from 80
+                y: (Math.random() - 0.4) * 140, // Increased from 60
+                z: (Math.random() - 0.5) * 60,
+                size: Math.random() * 2.5 + 1.5,
+                speed: 0.015 + Math.random() * 0.04,
                 phase: Math.random() * Math.PI * 2
             });
         }
@@ -48,9 +48,9 @@ class NeuralSyncAnimation {
 
     createCores() {
         this.mcus = [];
-        const mcuCount = 100;
+        const mcuCount = 120; // Increased count
         const pinsPerMCU = 10; // Reducing pins per mcu for performance while maintaining "thousands" feel via frequency
-        const radius = Math.min(this.width, this.height) * 0.4;
+        const radius = Math.min(this.width, this.height) * 0.45; // Increased radius
 
         for (let i = 0; i < mcuCount; i++) {
             const theta = (i / mcuCount) * Math.PI * 2;
