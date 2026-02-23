@@ -38,14 +38,15 @@
 
 .brain-node {
     position: relative;
-    width: 180px;
-    height: 180px;
+    width: 140px;
+    height: 140px;
     z-index: 2;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
     transition: transform 0.3s var(--ease-expo);
+    pointer-events: none;
 }
 
 .brain-node img {
