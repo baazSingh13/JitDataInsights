@@ -185,7 +185,7 @@ class NeuralSyncAnimation {
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
             } else {
-                // Optical State: Narrow White Pulses
+                // Optical State: Narrow Discrete Pulses (No growing lines)
                 const startX = this.optoPos.x;
                 const startY = sig.track.targetY;
                 const endX = sig.track.brainTargetX;
@@ -197,22 +197,25 @@ class NeuralSyncAnimation {
                 const curX = startX + (endX - startX) * t;
                 const curY = startY + (endY - startY) * t;
 
-                // Main pulse beam (narrow, subtle trail)
+                // Discrete Pulse Head (Narrow & Sharp)
                 this.ctx.beginPath();
-                this.ctx.strokeStyle = `rgba(255, 255, 255, ${sig.direction === 'toBrain' ? 0.2 * (1 - sig.progress) : 0.2 * sig.progress})`;
-                this.ctx.lineWidth = sig.width * 0.4;
-                this.ctx.moveTo(sig.direction === 'toBrain' ? startX : endX, sig.direction === 'toBrain' ? startY : endY);
-                this.ctx.lineTo(curX, curY);
-                this.ctx.stroke();
-
-                // Bright pulse head (small but intense)
-                this.ctx.beginPath();
-                this.ctx.fillStyle = `rgba(255, 255, 255, ${sig.direction === 'toBrain' ? 1 - sig.progress : sig.progress})`;
-                this.ctx.shadowBlur = 8;
+                const alpha = sig.direction === 'toBrain' ? (1 - sig.progress) : sig.progress;
+                this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
+                this.ctx.shadowBlur = 5;
                 this.ctx.shadowColor = '#fff';
-                this.ctx.arc(curX, curY, sig.width * 0.6, 0, Math.PI * 2);
+                this.ctx.arc(curX, curY, sig.width * 0.5, 0, Math.PI * 2);
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
+
+                // Optional: Tiny localized trail (not connected to source)
+                this.ctx.beginPath();
+                this.ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.3})`;
+                this.ctx.lineWidth = sig.width * 0.3;
+                const trailLen = 15;
+                const angle = Math.atan2(endY - startY, endX - startX) * (sig.direction === 'toBrain' ? 1 : -1);
+                this.ctx.moveTo(curX, curY);
+                this.ctx.lineTo(curX - Math.cos(angle) * trailLen, curY - Math.sin(angle) * trailLen);
+                this.ctx.stroke();
             }
         });
     }
