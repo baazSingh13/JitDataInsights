@@ -88,14 +88,16 @@ class NeuralSyncAnimation {
     spawnSignal() {
         if (this.tracks.length === 0) return;
         const track = this.tracks[Math.floor(Math.random() * this.tracks.length)];
+        const toBrain = Math.random() > 0.4; // 60% towards brain, 40% towards core
 
         this.signals.push({
             track,
-            stage: 'electrical',
+            direction: toBrain ? 'toBrain' : 'toCore',
+            stage: toBrain ? 'electrical' : 'optical',
             progress: 0,
             speed: 0.005 + Math.random() * 0.01,
-            width: 1.5 + Math.random() * 2,
-            color: '#00f0ff'
+            width: 1.2 + Math.random() * 2,
+            color: toBrain ? '#00f0ff' : 'rgba(255, 255, 255, 0.9)'
         });
     }
 
@@ -149,14 +151,17 @@ class NeuralSyncAnimation {
             sig.progress += sig.speed;
 
             if (sig.progress >= 1) {
-                if (sig.stage === 'electrical') {
-                    // Transition to Optical Stage
+                if (sig.direction === 'toBrain' && sig.stage === 'electrical') {
                     sig.stage = 'optical';
                     sig.progress = 0;
-                    sig.speed *= 1.5; // Light is faster
+                    sig.speed *= 1.4;
                     sig.color = 'rgba(255, 255, 255, 0.9)';
+                } else if (sig.direction === 'toCore' && sig.stage === 'optical') {
+                    sig.stage = 'electrical';
+                    sig.progress = 0;
+                    sig.speed *= 0.7;
+                    sig.color = '#00f0ff';
                 } else {
-                    // Signal reached brain
                     this.signals.splice(index, 1);
                     return;
                 }
@@ -165,53 +170,52 @@ class NeuralSyncAnimation {
             if (sig.stage === 'electrical') {
                 const points = sig.track.points;
                 const segmentCount = points.length - 1;
-                const absProgress = sig.progress * segmentCount;
-                const currentSeg = Math.floor(absProgress);
-                const segProgress = absProgress - currentSeg;
 
-                // Ensure currentSeg and currentSeg + 1 are valid indices
-                if (currentSeg < 0 || currentSeg >= segmentCount) {
-                    // This should ideally not happen if progress is between 0 and 1
-                    // and segmentCount is correctly calculated.
-                    return;
-                }
+                // For toBrain: progress 0 (core) -> 1 (opto)
+                // For toCore: progress 0 (opto) -> 1 (core) 
+                const pValue = sig.direction === 'toBrain' ? sig.progress : (1 - sig.progress);
+                const absProgress = pValue * segmentCount;
+                const currentSeg = Math.min(Math.floor(absProgress), segmentCount - 1);
+                const segProgress = absProgress - currentSeg;
 
                 const p1 = points[currentSeg];
                 const p2 = points[currentSeg + 1];
-                const curX = p1.x + (p2.x - p1.x) * segProgress;
-                const curY = p1.y + (p2.y - p1.y) * segProgress;
+                const x = p1.x + (p2.x - p1.x) * segProgress;
+                const y = p1.y + (p2.y - p1.y) * segProgress;
 
                 this.ctx.beginPath();
                 this.ctx.fillStyle = sig.color;
-                this.ctx.shadowBlur = 10;
-                this.ctx.shadowColor = '#00f0ff';
-                this.ctx.arc(curX, curY, sig.width, 0, Math.PI * 2);
+                this.ctx.shadowBlur = 8;
+                this.ctx.shadowColor = sig.direction === 'toBrain' ? '#00f0ff' : '#fff';
+                this.ctx.arc(x, y, sig.width, 0, Math.PI * 2);
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
             } else {
-                // Optical State (Direct beam into random brain target)
+                // Optical Stage
                 const startX = this.optoPos.x;
                 const startY = sig.track.targetY;
                 const endX = sig.track.brainTargetX;
                 const endY = sig.track.brainTargetY;
 
-                const curX = startX + (endX - startX) * sig.progress;
-                const curY = startY + (endY - startY) * sig.progress;
+                // For toBrain: progress 0 (opto) -> 1 (brain)
+                // For toCore: progress 0 (brain) -> 1 (opto)
+                const t = sig.direction === 'toBrain' ? sig.progress : (1 - sig.progress);
+                const curX = startX + (endX - startX) * t;
+                const curY = startY + (endY - startY) * t;
 
                 this.ctx.beginPath();
                 this.ctx.strokeStyle = sig.color;
-                this.ctx.lineWidth = sig.width * 1.5;
+                this.ctx.lineWidth = sig.width * (sig.direction === 'toBrain' ? 1.5 : 2);
                 this.ctx.shadowBlur = 10;
                 this.ctx.shadowColor = '#fff';
-                this.ctx.moveTo(startX, startY);
+                this.ctx.moveTo(sig.direction === 'toBrain' ? startX : endX, sig.direction === 'toBrain' ? startY : endY);
                 this.ctx.lineTo(curX, curY);
                 this.ctx.stroke();
                 this.ctx.shadowBlur = 0;
 
-                // Light pulse head (fading as it enters)
                 this.ctx.beginPath();
-                this.ctx.fillStyle = `rgba(255, 255, 255, ${1 - sig.progress})`;
-                this.ctx.arc(curX, curY, sig.width * 1.2, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(255, 255, 255, ${sig.direction === 'toBrain' ? 1 - sig.progress : sig.progress})`;
+                this.ctx.arc(curX, curY, sig.width * 1.5, 0, Math.PI * 2);
                 this.ctx.fill();
             }
         });
