@@ -37,13 +37,13 @@ class NeuralSyncAnimation {
 
     createBrain() {
         this.brainParticles = [];
-        const particleCount = 200;
+        const particleCount = 180; // Slightly less density for smaller scale
         for (let i = 0; i < particleCount; i++) {
             this.brainParticles.push({
-                x: (Math.random() - 0.5) * 350,
-                y: (Math.random() - 0.4) * 280,
-                z: (Math.random() - 0.5) * 100,
-                size: Math.random() * 5 + 3,
+                x: (Math.random() - 0.5) * 320, // Reduced spread
+                y: (Math.random() - 0.4) * 220,
+                z: (Math.random() - 0.5) * 80,
+                size: Math.random() * 4 + 2, // Scaled down particles
                 speed: 0.01 + Math.random() * 0.03,
                 phase: Math.random() * Math.PI * 2
             });
@@ -52,8 +52,8 @@ class NeuralSyncAnimation {
 
     createCores() {
         this.mcus = []; // Rename or repurpose for Neural Core
-        const mcuCount = 150;
-        const radius = 250; // Radius of the digital core
+        const mcuCount = 120;
+        const radius = 180; // Scaled down Neural Core radius
 
         for (let i = 0; i < mcuCount; i++) {
             const theta = (i / mcuCount) * Math.PI * 2;
@@ -68,18 +68,18 @@ class NeuralSyncAnimation {
         const startPole = Math.random() > 0.5 ? this.corePos : this.brainPos;
         const endPole = startPole === this.corePos ? this.brainPos : this.corePos;
 
-        // Path with mid-point curve
+        // Path with reduced mid-point curve for 55vh height
         const midX = (startPole.x + endPole.x) / 2;
-        const midY = (startPole.y + endPole.y) / 2 + (Math.random() - 0.5) * 400;
+        const midY = (startPole.y + endPole.y) / 2 + (Math.random() - 0.5) * 180;
 
         this.signals.push({
             p0: { ...startPole },
             p1: { x: midX, y: midY },
             p2: { ...endPole },
             progress: 0,
-            speed: 0.005 + Math.random() * 0.015,
-            width: 2 + Math.random() * 6,
-            color: `rgba(0, 240, 255, ${0.3 + Math.random() * 0.7})`
+            speed: 0.006 + Math.random() * 0.012,
+            width: 1.5 + Math.random() * 3.5, // Refined widths
+            color: `rgba(0, 240, 255, ${0.4 + Math.random() * 0.6})`
         });
     }
 
@@ -91,13 +91,13 @@ class NeuralSyncAnimation {
         this.brainParticles.forEach(p => {
             const glow = Math.sin(time * p.speed + p.phase) * 0.5 + 0.5;
             this.ctx.fillStyle = `rgba(0, 240, 255, ${0.2 + glow * 0.8})`;
-            const yOffset = Math.sin(time + p.phase) * 15;
+            const yOffset = Math.sin(time + p.phase) * 10;
             this.ctx.beginPath();
             this.ctx.arc(p.x, p.y + yOffset, p.size, 0, Math.PI * 2);
             this.ctx.fill();
 
             if (glow > 0.8) {
-                this.ctx.shadowBlur = 30;
+                this.ctx.shadowBlur = 20;
                 this.ctx.shadowColor = '#00f0ff';
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
@@ -115,14 +115,14 @@ class NeuralSyncAnimation {
         this.mcus.forEach((m, i) => {
             const glow = Math.sin(time + i) * 0.5 + 0.5;
             this.ctx.fillStyle = `rgba(0, 240, 255, ${0.1 + glow * 0.4})`;
-            const size = 15 + glow * 10;
+            const size = 10 + glow * 8; // Scaled down cubes
 
             // Geometric Squares for digital feel
             this.ctx.rotate(0.01);
             this.ctx.fillRect(m.x - this.corePos.x - size / 2, m.y - this.corePos.y - size / 2, size, size);
 
             if (glow > 0.9) {
-                this.ctx.shadowBlur = 25;
+                this.ctx.shadowBlur = 15;
                 this.ctx.shadowColor = '#00f0ff';
                 this.ctx.strokeRect(m.x - this.corePos.x - size / 2, m.y - this.corePos.y - size / 2, size, size);
                 this.ctx.shadowBlur = 0;
@@ -148,19 +148,23 @@ class NeuralSyncAnimation {
             this.ctx.beginPath();
             this.ctx.strokeStyle = `rgba(0, 240, 255, ${0.2 * (1 - t)})`;
             this.ctx.lineWidth = sig.width;
-            this.ctx.shadowBlur = 15;
+            this.ctx.shadowBlur = 12;
             this.ctx.shadowColor = '#00f0ff';
 
             // Approximate trail by drawing segment of curve
-            const prevT = Math.max(0, t - 0.1);
+            const prevT = Math.max(0, t - 0.08);
             const prevX = (1 - prevT) * (1 - prevT) * sig.p0.x + 2 * (1 - prevT) * prevT * sig.p1.x + prevT * prevT * sig.p2.x;
             const prevY = (1 - prevT) * (1 - prevT) * sig.p0.y + 2 * (1 - prevT) * prevT * sig.p1.y + prevT * prevT * sig.p2.y;
 
             this.ctx.moveTo(prevX, prevY);
+            this.ctx.lineTo(curX, curY);
+            this.ctx.stroke();
+            this.ctx.shadowBlur = 0;
+
             // Head
             this.ctx.beginPath();
             this.ctx.fillStyle = '#00f0ff';
-            this.ctx.arc(curX, curY, sig.width / 2 + 1, 0, Math.PI * 2);
+            this.ctx.arc(curX, curY, sig.width / 2 + 0.5, 0, Math.PI * 2);
             this.ctx.fill();
         });
     }

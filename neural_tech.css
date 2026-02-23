@@ -10,9 +10,10 @@
     border-top: 1px solid var(--glass-border);
     border-bottom: 1px solid var(--glass-border);
     position: relative;
-    height: 85vh;
+    height: 55vh;
+    /* Reduced from 85vh */
     /* Forced height */
-    min-height: 85vh;
+    min-height: 55vh;
     width: 100vw;
     left: 50%;
     right: 50%;
@@ -60,9 +61,11 @@
     left: 25%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 300px;
+    width: 220px;
+    /* Scaled down from 300px */
     /* Doubled size */
-    height: 300px;
+    height: 220px;
+    /* Scaled down from 300px */
     /* Doubled size */
     z-index: 2;
     display: flex;
