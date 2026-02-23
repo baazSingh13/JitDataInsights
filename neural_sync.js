@@ -160,15 +160,12 @@ class NeuralSyncAnimation {
             const p1 = sig.path[currentSeg];
             const p2 = sig.path[currentSeg + 1];
 
-            const curR = p1.r + (p2.r - p1.r) * segProgress;
-            const curT = p1.t + (p2.t - p1.t) * segProgress;
+            const curX = this.brainPos.x + Math.cos(p1.t + (p2.t - p1.t) * segProgress) * (p1.r + (p2.r - p1.r) * segProgress);
+            const curY = this.brainPos.y + Math.sin(p1.t + (p2.t - p1.t) * segProgress) * (p1.r + (p2.r - p1.r) * segProgress);
 
-            const x = this.brainPos.x + Math.cos(curT) * curR;
-            const y = this.brainPos.y + Math.sin(curT) * curR;
-
-            // Draw full track path (very subtle)
+            // 1. Draw static background track (very subtle)
             this.ctx.beginPath();
-            this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.03)';
+            this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.02)';
             this.ctx.lineWidth = 0.5;
             let tx = this.brainPos.x + Math.cos(sig.path[0].t) * sig.path[0].r;
             let ty = this.brainPos.y + Math.sin(sig.path[0].t) * sig.path[0].r;
@@ -180,19 +177,38 @@ class NeuralSyncAnimation {
             }
             this.ctx.stroke();
 
-            // Draw signal head
+            // 2. Draw glowing trail (behind the head)
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = `rgba(0, 240, 255, ${0.1 * sig.progress})`;
+            this.ctx.lineWidth = sig.width * 2;
+            this.ctx.shadowBlur = 10;
+            this.ctx.shadowColor = 'rgba(0, 240, 255, 0.5)';
+
+            this.ctx.moveTo(tx, ty);
+            for (let i = 1; i <= currentSeg; i++) {
+                let px = this.brainPos.x + Math.cos(sig.path[i].t) * sig.path[i].r;
+                let py = this.brainPos.y + Math.sin(sig.path[i].t) * sig.path[i].r;
+                this.ctx.lineTo(px, py);
+            }
+            this.ctx.lineTo(curX, curY);
+            this.ctx.stroke();
+            this.ctx.shadowBlur = 0;
+
+            // 3. Draw signal head (leading the trail)
             this.ctx.beginPath();
             this.ctx.strokeStyle = sig.color;
-            this.ctx.lineWidth = sig.width;
-            this.ctx.shadowBlur = 10;
+            this.ctx.lineWidth = sig.width + 1;
+            this.ctx.lineCap = 'round';
+            this.ctx.shadowBlur = 15;
             this.ctx.shadowColor = sig.color;
 
-            const prevProgress = Math.max(0, segProgress - 0.1);
-            const prevX = this.brainPos.x + Math.cos(p1.t + (p2.t - p1.t) * prevProgress) * (p1.r + (p2.r - p1.r) * prevProgress);
-            const prevY = this.brainPos.y + Math.sin(p1.t + (p2.t - p1.t) * prevProgress) * (p1.r + (p2.r - p1.r) * prevProgress);
+            const headTailLen = 0.05;
+            const prevHeadProgress = Math.max(0, segProgress - headTailLen);
+            const prevHeadX = this.brainPos.x + Math.cos(p1.t + (p2.t - p1.t) * prevHeadProgress) * (p1.r + (p2.r - p1.r) * prevHeadProgress);
+            const prevHeadY = this.brainPos.y + Math.sin(p1.t + (p2.t - p1.t) * prevHeadProgress) * (p1.r + (p2.r - p1.r) * prevHeadProgress);
 
-            this.ctx.moveTo(x, y);
-            this.ctx.lineTo(prevX, prevY);
+            this.ctx.moveTo(curX, curY);
+            this.ctx.lineTo(prevHeadX, prevHeadY);
             this.ctx.stroke();
             this.ctx.shadowBlur = 0;
         });
