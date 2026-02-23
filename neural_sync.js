@@ -4,7 +4,8 @@ class NeuralSyncAnimation {
         if (!this.canvas) return;
         this.ctx = this.canvas.getContext('2d');
         this.signals = [];
-        this.mcus = [];
+        this.cores = []; // Now stores 10 fixed Neural Cores
+        this.tracks = []; // Stores 100 fixed engineered paths (10 per core)
         this.brainParticles = [];
         this.brainPos = { x: 0, y: 0 };
         this.angle = 0;
@@ -27,59 +28,77 @@ class NeuralSyncAnimation {
         this.canvas.height = this.height * window.devicePixelRatio;
         this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-        // Dual Positional Anchors
-        this.brainPos = { x: this.width * 0.25, y: this.height * 0.5 };
-        this.corePos = { x: this.width * 0.75, y: this.height * 0.5 };
+        // Positional Anchors
+        this.brainPos = { x: this.width * 0.2, y: this.height * 0.5 };
+        const coreX = this.width * 0.85;
+
+        // 1. Create 10 Neural Cores in a vertical bus
+        this.cores = [];
+        const coreSpacing = this.height * 0.7 / 9;
+        const startY = this.height * 0.15;
+        for (let i = 0; i < 10; i++) {
+            this.cores.push({
+                x: coreX,
+                y: startY + i * coreSpacing,
+                id: i
+            });
+        }
+
+        // 2. Create 100 Engineered Tracks (10 per core)
+        this.tracks = [];
+        this.cores.forEach((core, coreIdx) => {
+            for (let j = 0; j < 10; j++) {
+                // Orthogonal routing logic (Manhattan style)
+                // Path: Core -> Step-out -> Vertical Bus -> Step-in -> Brain
+                const wireIdx = coreIdx * 10 + j;
+                const stepOut = 40 + j * 5;
+                const busX = coreX - 80 - (wireIdx * 3); // Spacing for 100 wires
+                const targetY = this.brainPos.y + (wireIdx - 50) * 4; // Converging at brain
+
+                this.tracks.push({
+                    coreIdx,
+                    points: [
+                        { x: core.x, y: core.y },
+                        { x: core.x - stepOut, y: core.y },
+                        { x: busX, y: core.y },
+                        { x: busX, y: targetY },
+                        { x: this.brainPos.x + 150, y: targetY },
+                        { x: this.brainPos.x, y: targetY } // Target brain particles
+                    ]
+                });
+            }
+        });
 
         this.createBrain();
-        this.createCores();
     }
 
     createBrain() {
         this.brainParticles = [];
-        const particleCount = 180; // Slightly less density for smaller scale
+        const particleCount = 150;
         for (let i = 0; i < particleCount; i++) {
             this.brainParticles.push({
-                x: (Math.random() - 0.5) * 320, // Reduced spread
-                y: (Math.random() - 0.4) * 220,
-                z: (Math.random() - 0.5) * 80,
-                size: Math.random() * 4 + 2, // Scaled down particles
-                speed: 0.01 + Math.random() * 0.03,
+                x: (Math.random() - 0.5) * 300,
+                y: (Math.random() - 0.4) * 200,
+                z: (Math.random() - 0.5) * 60,
+                size: Math.random() * 4 + 2,
+                speed: 0.01 + Math.random() * 0.02,
                 phase: Math.random() * Math.PI * 2
             });
         }
     }
 
-    createCores() {
-        this.mcus = []; // Rename or repurpose for Neural Core
-        const mcuCount = 120;
-        const radius = 180; // Scaled down Neural Core radius
-
-        for (let i = 0; i < mcuCount; i++) {
-            const theta = (i / mcuCount) * Math.PI * 2;
-            const x = this.corePos.x + Math.cos(theta) * (Math.random() * radius);
-            const y = this.corePos.y + Math.sin(theta) * (Math.random() * radius);
-            this.mcus.push({ x, y, theta });
-        }
-    }
+    // createCores method removed as it's integrated into resize and drawInfrastructure
 
     spawnSignal() {
-        // Signals flow from Core to Brain or vice-versa
-        const startPole = Math.random() > 0.5 ? this.corePos : this.brainPos;
-        const endPole = startPole === this.corePos ? this.brainPos : this.corePos;
-
-        // Path with reduced mid-point curve for 55vh height
-        const midX = (startPole.x + endPole.x) / 2;
-        const midY = (startPole.y + endPole.y) / 2 + (Math.random() - 0.5) * 180;
+        if (this.tracks.length === 0) return;
+        const track = this.tracks[Math.floor(Math.random() * this.tracks.length)];
 
         this.signals.push({
-            p0: { ...startPole },
-            p1: { x: midX, y: midY },
-            p2: { ...endPole },
+            track,
             progress: 0,
-            speed: 0.006 + Math.random() * 0.012,
-            width: 1.5 + Math.random() * 3.5, // Refined widths
-            color: `rgba(0, 240, 255, ${0.4 + Math.random() * 0.6})`
+            speed: 0.004 + Math.random() * 0.008,
+            width: 1.5 + Math.random() * 2.5,
+            color: `rgba(0, 240, 255, ${0.5 + Math.random() * 0.5})`
         });
     }
 
@@ -90,14 +109,14 @@ class NeuralSyncAnimation {
 
         this.brainParticles.forEach(p => {
             const glow = Math.sin(time * p.speed + p.phase) * 0.5 + 0.5;
-            this.ctx.fillStyle = `rgba(0, 240, 255, ${0.2 + glow * 0.8})`;
+            this.ctx.fillStyle = `rgba(0, 240, 255, ${0.1 + glow * 0.6})`;
             const yOffset = Math.sin(time + p.phase) * 10;
             this.ctx.beginPath();
             this.ctx.arc(p.x, p.y + yOffset, p.size, 0, Math.PI * 2);
             this.ctx.fill();
 
-            if (glow > 0.8) {
-                this.ctx.shadowBlur = 20;
+            if (glow > 0.85) {
+                this.ctx.shadowBlur = 15;
                 this.ctx.shadowColor = '#00f0ff';
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
@@ -106,29 +125,42 @@ class NeuralSyncAnimation {
         this.ctx.restore();
     }
 
-    drawCores() {
-        // Drawing the Neural Core (Right side)
-        const time = Date.now() * 0.001;
-        this.ctx.save();
-        this.ctx.translate(this.corePos.x, this.corePos.y);
+    // drawCores method removed
 
-        this.mcus.forEach((m, i) => {
-            const glow = Math.sin(time + i) * 0.5 + 0.5;
-            this.ctx.fillStyle = `rgba(0, 240, 255, ${0.1 + glow * 0.4})`;
-            const size = 10 + glow * 8; // Scaled down cubes
+    drawInfrastructure() {
+        // Draw static orthogonal tracks
+        this.ctx.beginPath();
+        this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
+        this.ctx.lineWidth = 0.8;
 
-            // Geometric Squares for digital feel
-            this.ctx.rotate(0.01);
-            this.ctx.fillRect(m.x - this.corePos.x - size / 2, m.y - this.corePos.y - size / 2, size, size);
+        this.tracks.forEach(track => {
+            this.ctx.moveTo(track.points[0].x, track.points[0].y);
+            for (let i = 1; i < track.points.length; i++) {
+                this.ctx.lineTo(track.points[i].x, track.points[i].y);
+            }
+        });
+        this.ctx.stroke();
 
-            if (glow > 0.9) {
-                this.ctx.shadowBlur = 15;
+        // Draw 10 Cores
+        this.cores.forEach(core => {
+            this.ctx.fillStyle = 'rgba(0, 240, 255, 0.2)';
+            this.ctx.fillRect(core.x - 12, core.y - 12, 24, 24);
+
+            this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(core.x - 12, core.y - 12, 24, 24);
+
+            // Core Glow
+            const pulse = Math.sin(Date.now() * 0.002 + core.id) * 0.5 + 0.5;
+            if (pulse > 0.7) {
+                this.ctx.fillStyle = '#00f0ff';
+                this.ctx.fillRect(core.x - 4, core.y - 4, 8, 8);
+                this.ctx.shadowBlur = 10;
                 this.ctx.shadowColor = '#00f0ff';
-                this.ctx.strokeRect(m.x - this.corePos.x - size / 2, m.y - this.corePos.y - size / 2, size, size);
+                this.ctx.strokeRect(core.x - 15, core.y - 15, 30, 30);
                 this.ctx.shadowBlur = 0;
             }
         });
-        this.ctx.restore();
     }
 
     drawSignals() {
@@ -139,45 +171,53 @@ class NeuralSyncAnimation {
                 return;
             }
 
-            // Quadratic Bezier Path
-            const t = sig.progress;
-            const curX = (1 - t) * (1 - t) * sig.p0.x + 2 * (1 - t) * t * sig.p1.x + t * t * sig.p2.x;
-            const curY = (1 - t) * (1 - t) * sig.p0.y + 2 * (1 - t) * t * sig.p1.y + t * t * sig.p2.y;
+            const points = sig.track.points;
+            const segmentCount = points.length - 1;
+            const absProgress = sig.progress * segmentCount;
+            const currentSeg = Math.floor(absProgress);
+            const segProgress = absProgress - currentSeg;
 
-            // Trail
+            // Ensure currentSeg and currentSeg + 1 are valid indices
+            if (currentSeg < 0 || currentSeg >= segmentCount) {
+                // This should ideally not happen if progress is between 0 and 1
+                // and segmentCount is correctly calculated.
+                return;
+            }
+
+            const p1 = points[currentSeg];
+            const p2 = points[currentSeg + 1];
+
+            const curX = p1.x + (p2.x - p1.x) * segProgress;
+            const curY = p1.y + (p2.y - p1.y) * segProgress;
+
+            // Signal Path (subtle highlight)
             this.ctx.beginPath();
-            this.ctx.strokeStyle = `rgba(0, 240, 255, ${0.2 * (1 - t)})`;
+            this.ctx.strokeStyle = `rgba(0, 240, 255, ${0.15 * (1 - sig.progress)})`;
             this.ctx.lineWidth = sig.width;
-            this.ctx.shadowBlur = 12;
-            this.ctx.shadowColor = '#00f0ff';
-
-            // Approximate trail by drawing segment of curve
-            const prevT = Math.max(0, t - 0.08);
-            const prevX = (1 - prevT) * (1 - prevT) * sig.p0.x + 2 * (1 - prevT) * prevT * sig.p1.x + prevT * prevT * sig.p2.x;
-            const prevY = (1 - prevT) * (1 - prevT) * sig.p0.y + 2 * (1 - prevT) * prevT * sig.p1.y + prevT * prevT * sig.p2.y;
-
-            this.ctx.moveTo(prevX, prevY);
+            this.ctx.moveTo(p1.x, p1.y);
             this.ctx.lineTo(curX, curY);
             this.ctx.stroke();
-            this.ctx.shadowBlur = 0;
 
-            // Head
+            // Glowing Head
             this.ctx.beginPath();
-            this.ctx.fillStyle = '#00f0ff';
-            this.ctx.arc(curX, curY, sig.width / 2 + 0.5, 0, Math.PI * 2);
+            this.ctx.fillStyle = sig.color;
+            this.ctx.shadowBlur = 12;
+            this.ctx.shadowColor = '#00f0ff';
+            this.ctx.arc(curX, curY, sig.width / 2 + 1, 0, Math.PI * 2);
             this.ctx.fill();
+            this.ctx.shadowBlur = 0;
         });
     }
 
     animate() {
         this.ctx.clearRect(0, 0, this.width, this.height);
 
-        if (this.signals.length < 150) {
-            for (let i = 0; i < 4; i++) this.spawnSignal();
+        if (this.signals.length < 80) {
+            for (let i = 0; i < 2; i++) this.spawnSignal();
         }
 
+        this.drawInfrastructure();
         this.drawBrain();
-        this.drawCores();
         this.drawSignals();
 
         requestAnimationFrame(() => this.animate());

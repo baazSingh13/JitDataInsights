@@ -58,7 +58,8 @@
 
 .brain-node {
     position: absolute;
-    left: 25%;
+    left: 20%;
+    /* Aligned with JS brainPos */
     top: 50%;
     transform: translate(-50%, -50%);
     width: 220px;
