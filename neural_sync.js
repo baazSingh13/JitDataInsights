@@ -103,7 +103,7 @@ class NeuralSyncAnimation {
             progress: 0,
             speed: 0.005 + Math.random() * 0.01,
             width: 1.0 + Math.random() * 1.5,
-            color: toBrain ? '#00f0ff' : '#ff00ff' // Cyan for Machine, Magenta for Brain
+            color: toBrain ? '#ff00ff' : '#00f0ff' // Magenta for Machine, Cyan for Brain
         });
     }
 
@@ -185,7 +185,7 @@ class NeuralSyncAnimation {
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
             } else {
-                // Optical State: EEG Waveform (Traveling Sine Waves)
+                // Optical State: EEG Waveform (Traveling Sine Waves - NO HEADS)
                 const startX = this.optoPos.x;
                 const startY = sig.track.targetY;
                 const endX = sig.track.brainTargetX;
@@ -193,44 +193,34 @@ class NeuralSyncAnimation {
 
                 const t = sig.direction === 'toBrain' ? sig.progress : (1 - sig.progress);
                 const alpha = sig.direction === 'toBrain' ? (1 - sig.progress) : sig.progress;
-                const waveColor = sig.direction === 'toBrain' ? '224, 255, 255' : '255, 0, 255';
+                const waveColor = sig.direction === 'toBrain' ? '255, 128, 255' : '124, 252, 255';
 
                 // Draw a traveling sine-wave segment (EEG style)
                 this.ctx.beginPath();
                 this.ctx.strokeStyle = `rgba(${waveColor}, ${alpha * 0.8})`;
                 this.ctx.lineWidth = sig.width * 0.5;
 
-                const segmentLength = 0.15; // Width of the wave packet
+                const segmentLength = 0.18;
                 const startP = t - segmentLength;
 
-                for (let i = 0; i <= 20; i++) {
-                    const p = startP + (i / 20) * segmentLength;
+                for (let i = 0; i <= 25; i++) {
+                    const p = startP + (i / 25) * segmentLength;
                     if (p < 0 || p > 1) continue;
 
                     const lx = startX + (endX - startX) * p;
                     const ly = startY + (endY - startY) * p;
 
-                    // EEG Oscillation: high frequency sine wave + time phase
+                    // EEG Oscillation: phase sync'd with direction (no upstream swimming)
                     const freq = 45;
-                    const amp = 8;
-                    const phase = Date.now() * 0.012;
+                    const amp = 9;
+                    const phaseDir = sig.direction === 'toBrain' ? 1 : -1;
+                    const phase = Date.now() * 0.015 * phaseDir;
                     const offset = Math.sin(p * freq - phase) * amp;
 
                     if (i === 0) this.ctx.moveTo(lx, ly + offset);
                     else this.ctx.lineTo(lx, ly + offset);
                 }
                 this.ctx.stroke();
-
-                // Small sharp head at the far end of the wave
-                const headP = t;
-                const hx = startX + (endX - startX) * headP;
-                const hy = startY + (endY - startY) * headP;
-                const headOffset = Math.sin(headP * 45 - Date.now() * 0.012) * 8;
-
-                this.ctx.beginPath();
-                this.ctx.fillStyle = `rgba(${waveColor}, ${alpha})`;
-                this.ctx.arc(hx, hy + headOffset, sig.width * 0.4, 0, Math.PI * 2);
-                this.ctx.fill();
             }
         });
     }
