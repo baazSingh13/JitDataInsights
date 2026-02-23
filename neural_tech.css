@@ -58,30 +58,92 @@
 
 .brain-node {
     position: absolute;
-    left: 20%;
-    /* Aligned with JS brainPos */
+    left: 15%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 220px;
-    /* Scaled down from 300px */
-    /* Doubled size */
-    height: 220px;
-    /* Scaled down from 300px */
-    /* Doubled size */
+    width: 280px;
+    height: 280px;
     z-index: 2;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    transition: transform 0.3s var(--ease-expo);
     pointer-events: none;
 }
 
-.brain-node img {
+#brain-image {
     width: 100%;
     height: auto;
-    filter: drop-shadow(0 0 20px var(--mcu-glow));
-    animation: brain-pulse 4s infinite ease-in-out;
+    filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.4)) brightness(1.1);
+    animation: brain-pulse 4s ease-in-out infinite;
+}
+
+#opto-coupler-device {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 280px;
+    background: rgba(10, 10, 12, 0.85);
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    border-radius: 12px;
+    backdrop-filter: blur(15px);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    box-shadow: 0 0 40px rgba(0, 240, 255, 0.15);
+}
+
+.opto-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(0, 240, 255, 0.7);
+    letter-spacing: 3px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+}
+
+.opto-sensor {
+    width: 6px;
+    height: 50%;
+    background: linear-gradient(to bottom, transparent, #00f0ff, transparent);
+    box-shadow: 0 0 20px #00f0ff, 0 0 40px rgba(0, 240, 255, 0.5);
+    border-radius: 3px;
+    opacity: 1;
+    animation: sensor-pulse 2s ease-in-out infinite;
+}
+
+@keyframes sensor-pulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        box-shadow: 0 0 10px #00f0ff;
+    }
+
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 25px #00f0ff, 0 0 50px rgba(0, 240, 255, 0.6);
+    }
+}
+
+@keyframes brain-pulse {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.4)) brightness(1.1);
+        transform: scale(1);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 40px rgba(0, 240, 255, 0.6)) brightness(1.2);
+        transform: scale(1.02);
+    }
 }
 
 .brain-glow {
