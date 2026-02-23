@@ -185,39 +185,52 @@ class NeuralSyncAnimation {
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
             } else {
-                // Optical State: Narrow Discrete Pulses (No growing lines)
+                // Optical State: EEG Waveform (Traveling Sine Waves)
                 const startX = this.optoPos.x;
                 const startY = sig.track.targetY;
                 const endX = sig.track.brainTargetX;
                 const endY = sig.track.brainTargetY;
 
-                // For toBrain: progress 0 (opto) -> 1 (brain)
-                // For toCore: progress 0 (brain) -> 1 (opto)
                 const t = sig.direction === 'toBrain' ? sig.progress : (1 - sig.progress);
-                const curX = startX + (endX - startX) * t;
-                const curY = startY + (endY - startY) * t;
-
-                // Discrete Pulse Head (Narrow & Sharp)
-                this.ctx.beginPath();
                 const alpha = sig.direction === 'toBrain' ? (1 - sig.progress) : sig.progress;
-                const headColor = sig.direction === 'toBrain' ? '224, 255, 255' : '255, 0, 255';
+                const waveColor = sig.direction === 'toBrain' ? '224, 255, 255' : '255, 0, 255';
 
-                this.ctx.fillStyle = `rgba(${headColor}, ${alpha * 0.9})`;
-                this.ctx.shadowBlur = 6;
-                this.ctx.shadowColor = sig.color;
-                this.ctx.arc(curX, curY, sig.width * 0.5, 0, Math.PI * 2);
-                this.ctx.fill();
-                this.ctx.shadowBlur = 0;
-
-                // Tiny localized trail
+                // Draw a traveling sine-wave segment (EEG style)
                 this.ctx.beginPath();
-                this.ctx.strokeStyle = `rgba(${headColor}, ${alpha * 0.3})`;
-                this.ctx.lineWidth = sig.width * 0.3;
-                const trailLen = 12;
-                const angle = Math.atan2(endY - startY, endX - startX) * (sig.direction === 'toBrain' ? 1 : -1);
-                this.ctx.moveTo(curX, curY);
-                this.ctx.lineTo(curX - Math.cos(angle) * trailLen, curY - Math.sin(angle) * trailLen);
+                this.ctx.strokeStyle = `rgba(${waveColor}, ${alpha * 0.8})`;
+                this.ctx.lineWidth = sig.width * 0.5;
+
+                const segmentLength = 0.15; // Width of the wave packet
+                const startP = t - segmentLength;
+
+                for (let i = 0; i <= 20; i++) {
+                    const p = startP + (i / 20) * segmentLength;
+                    if (p < 0 || p > 1) continue;
+
+                    const lx = startX + (endX - startX) * p;
+                    const ly = startY + (endY - startY) * p;
+
+                    // EEG Oscillation: high frequency sine wave + time phase
+                    const freq = 45;
+                    const amp = 8;
+                    const phase = Date.now() * 0.012;
+                    const offset = Math.sin(p * freq - phase) * amp;
+
+                    if (i === 0) this.ctx.moveTo(lx, ly + offset);
+                    else this.ctx.lineTo(lx, ly + offset);
+                }
                 this.ctx.stroke();
+
+                // Small sharp head at the far end of the wave
+                const headP = t;
+                const hx = startX + (endX - startX) * headP;
+                const hy = startY + (endY - startY) * headP;
+                const headOffset = Math.sin(headP * 45 - Date.now() * 0.012) * 8;
+
+                this.ctx.beginPath();
+                this.ctx.fillStyle = `rgba(${waveColor}, ${alpha})`;
+                this.ctx.arc(hx, hy + headOffset, sig.width * 0.4, 0, Math.PI * 2);
+                this.ctx.fill();
             }
         });
     }
