@@ -27,19 +27,23 @@ class NeuralSyncAnimation {
         this.canvas.height = this.height * window.devicePixelRatio;
         this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-        this.brainPos = { x: this.width / 2, y: this.height / 2 };
+        // Dual Positional Anchors
+        this.brainPos = { x: this.width * 0.25, y: this.height * 0.5 };
+        this.corePos = { x: this.width * 0.75, y: this.height * 0.5 };
+
+        this.createBrain();
         this.createCores();
     }
 
     createBrain() {
         this.brainParticles = [];
-        const particleCount = 350; // Increased density for larger scale
+        const particleCount = 200;
         for (let i = 0; i < particleCount; i++) {
             this.brainParticles.push({
-                x: (Math.random() - 0.5) * 450, // Massive spread
-                y: (Math.random() - 0.4) * 350,
-                z: (Math.random() - 0.5) * 120,
-                size: Math.random() * 6.5 + 3.5, // Massive particles
+                x: (Math.random() - 0.5) * 350,
+                y: (Math.random() - 0.4) * 280,
+                z: (Math.random() - 0.5) * 100,
+                size: Math.random() * 5 + 3,
                 speed: 0.01 + Math.random() * 0.03,
                 phase: Math.random() * Math.PI * 2
             });
@@ -47,48 +51,35 @@ class NeuralSyncAnimation {
     }
 
     createCores() {
-        this.mcus = [];
-        const mcuCount = 140; // More MCUs for the bigger grid
-        const pinsPerMCU = 10;
-        // Pushing cores further to the edges, considering the 100vw container
-        const radius = Math.max(this.width, this.height) * 0.85;
+        this.mcus = []; // Rename or repurpose for Neural Core
+        const mcuCount = 150;
+        const radius = 250; // Radius of the digital core
 
         for (let i = 0; i < mcuCount; i++) {
             const theta = (i / mcuCount) * Math.PI * 2;
-            const x = this.brainPos.x + Math.cos(theta) * radius;
-            const y = this.brainPos.y + Math.sin(theta) * radius;
-
-            const pins = [];
-            for (let j = 0; j < pinsPerMCU; j++) {
-                pins.push({
-                    angle: theta + (Math.random() - 0.5) * 0.1,
-                    dist: radius + (Math.random() - 0.5) * 40
-                });
-            }
-            this.mcus.push({ x, y, theta, pins });
+            const x = this.corePos.x + Math.cos(theta) * (Math.random() * radius);
+            const y = this.corePos.y + Math.sin(theta) * (Math.random() * radius);
+            this.mcus.push({ x, y, theta });
         }
     }
 
     spawnSignal() {
-        if (this.mcus.length === 0) return;
-        const mcu = this.mcus[Math.floor(Math.random() * this.mcus.length)];
-        const theta = mcu.theta;
-        const startRadius = Math.max(this.width, this.height) * 0.85;
+        // Signals flow from Core to Brain or vice-versa
+        const startPole = Math.random() > 0.5 ? this.corePos : this.brainPos;
+        const endPole = startPole === this.corePos ? this.brainPos : this.corePos;
 
-        // Manhattan-style radial path
-        const path = [
-            { r: startRadius, t: theta },
-            { r: startRadius * (0.6 + Math.random() * 0.2), t: theta },
-            { r: startRadius * (0.3 + Math.random() * 0.2), t: theta + (Math.random() - 0.5) * 0.8 },
-            { r: 0, t: theta + (Math.random() - 0.5) * 0.3 }
-        ];
+        // Path with mid-point curve
+        const midX = (startPole.x + endPole.x) / 2;
+        const midY = (startPole.y + endPole.y) / 2 + (Math.random() - 0.5) * 400;
 
         this.signals.push({
-            path,
+            p0: { ...startPole },
+            p1: { x: midX, y: midY },
+            p2: { ...endPole },
             progress: 0,
-            speed: 0.005 + Math.random() * 0.01, // Slower for epic feel
-            width: 3.5 + Math.random() * 5.5, // Very thick signals
-            color: `rgba(0, 240, 255, ${0.4 + Math.random() * 0.6})`
+            speed: 0.005 + Math.random() * 0.015,
+            width: 2 + Math.random() * 6,
+            color: `rgba(0, 240, 255, ${0.3 + Math.random() * 0.7})`
         });
     }
 
@@ -97,29 +88,16 @@ class NeuralSyncAnimation {
         this.ctx.save();
         this.ctx.translate(this.brainPos.x, this.brainPos.y);
 
-        // Draw connections between brain particles
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.12)';
-        this.ctx.lineWidth = 1.2;
-        for (let i = 0; i < this.brainParticles.length; i += 3) {
-            const p1 = this.brainParticles[i];
-            const p2 = this.brainParticles[(i + 1) % this.brainParticles.length];
-            const offset = Math.sin(time + p1.phase) * 12;
-            this.ctx.moveTo(p1.x, p1.y + offset);
-            this.ctx.lineTo(p2.x, p2.y - offset);
-        }
-        this.ctx.stroke();
-
         this.brainParticles.forEach(p => {
             const glow = Math.sin(time * p.speed + p.phase) * 0.5 + 0.5;
-            this.ctx.fillStyle = `rgba(0, 240, 255, ${0.3 + glow * 0.7})`;
-            const yOffset = Math.sin(time + p.phase) * 12;
+            this.ctx.fillStyle = `rgba(0, 240, 255, ${0.2 + glow * 0.8})`;
+            const yOffset = Math.sin(time + p.phase) * 15;
             this.ctx.beginPath();
             this.ctx.arc(p.x, p.y + yOffset, p.size, 0, Math.PI * 2);
             this.ctx.fill();
 
             if (glow > 0.8) {
-                this.ctx.shadowBlur = 35; // Massive glow
+                this.ctx.shadowBlur = 30;
                 this.ctx.shadowColor = '#00f0ff';
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
@@ -129,20 +107,28 @@ class NeuralSyncAnimation {
     }
 
     drawCores() {
-        this.mcus.forEach(mcu => {
-            this.ctx.fillStyle = 'rgba(0, 240, 255, 0.25)';
-            this.ctx.fillRect(mcu.x - 8, mcu.y - 8, 16, 16); // Massive MCU body
+        // Drawing the Neural Core (Right side)
+        const time = Date.now() * 0.001;
+        this.ctx.save();
+        this.ctx.translate(this.corePos.x, this.corePos.y);
 
-            // Pulsing pin activity
-            if (Math.random() > 0.9) {
-                this.ctx.fillStyle = '#00f0ff';
-                this.ctx.fillRect(mcu.x - 5, mcu.y - 5, 10, 10);
-                this.ctx.shadowBlur = 18;
+        this.mcus.forEach((m, i) => {
+            const glow = Math.sin(time + i) * 0.5 + 0.5;
+            this.ctx.fillStyle = `rgba(0, 240, 255, ${0.1 + glow * 0.4})`;
+            const size = 15 + glow * 10;
+
+            // Geometric Squares for digital feel
+            this.ctx.rotate(0.01);
+            this.ctx.fillRect(m.x - this.corePos.x - size / 2, m.y - this.corePos.y - size / 2, size, size);
+
+            if (glow > 0.9) {
+                this.ctx.shadowBlur = 25;
                 this.ctx.shadowColor = '#00f0ff';
-                this.ctx.strokeRect(mcu.x - 12, mcu.y - 12, 24, 24);
+                this.ctx.strokeRect(m.x - this.corePos.x - size / 2, m.y - this.corePos.y - size / 2, size, size);
                 this.ctx.shadowBlur = 0;
             }
         });
+        this.ctx.restore();
     }
 
     drawSignals() {
@@ -153,65 +139,29 @@ class NeuralSyncAnimation {
                 return;
             }
 
-            const segmentCount = sig.path.length - 1;
-            const absProgress = sig.progress * segmentCount;
-            const currentSeg = Math.floor(absProgress);
-            const segProgress = absProgress - currentSeg;
+            // Quadratic Bezier Path
+            const t = sig.progress;
+            const curX = (1 - t) * (1 - t) * sig.p0.x + 2 * (1 - t) * t * sig.p1.x + t * t * sig.p2.x;
+            const curY = (1 - t) * (1 - t) * sig.p0.y + 2 * (1 - t) * t * sig.p1.y + t * t * sig.p2.y;
 
-            const p1 = sig.path[currentSeg];
-            const p2 = sig.path[currentSeg + 1];
-
-            const curX = this.brainPos.x + Math.cos(p1.t + (p2.t - p1.t) * segProgress) * (p1.r + (p2.r - p1.r) * segProgress);
-            const curY = this.brainPos.y + Math.sin(p1.t + (p2.t - p1.t) * segProgress) * (p1.r + (p2.r - p1.r) * segProgress);
-
-            // 1. Draw static background track (subtle but bolder)
+            // Trail
             this.ctx.beginPath();
-            this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
-            this.ctx.lineWidth = 1.5;
-            let tx = this.brainPos.x + Math.cos(sig.path[0].t) * sig.path[0].r;
-            let ty = this.brainPos.y + Math.sin(sig.path[0].t) * sig.path[0].r;
-            this.ctx.moveTo(tx, ty);
-            for (let i = 1; i < sig.path.length; i++) {
-                let px = this.brainPos.x + Math.cos(sig.path[i].t) * sig.path[i].r;
-                let py = this.brainPos.y + Math.sin(sig.path[i].t) * sig.path[i].r;
-                this.ctx.lineTo(px, py);
-            }
-            this.ctx.stroke();
+            this.ctx.strokeStyle = `rgba(0, 240, 255, ${0.2 * (1 - t)})`;
+            this.ctx.lineWidth = sig.width;
+            this.ctx.shadowBlur = 15;
+            this.ctx.shadowColor = '#00f0ff';
 
-            // 2. Draw glowing trail (behind the head)
+            // Approximate trail by drawing segment of curve
+            const prevT = Math.max(0, t - 0.1);
+            const prevX = (1 - prevT) * (1 - prevT) * sig.p0.x + 2 * (1 - prevT) * prevT * sig.p1.x + prevT * prevT * sig.p2.x;
+            const prevY = (1 - prevT) * (1 - prevT) * sig.p0.y + 2 * (1 - prevT) * prevT * sig.p1.y + prevT * prevT * sig.p2.y;
+
+            this.ctx.moveTo(prevX, prevY);
+            // Head
             this.ctx.beginPath();
-            this.ctx.strokeStyle = `rgba(0, 240, 255, ${0.25 * sig.progress})`;
-            this.ctx.lineWidth = sig.width * 1.8;
-            this.ctx.shadowBlur = 25;
-            this.ctx.shadowColor = 'rgba(0, 240, 255, 0.7)';
-
-            this.ctx.moveTo(tx, ty);
-            for (let i = 1; i <= currentSeg; i++) {
-                let px = this.brainPos.x + Math.cos(sig.path[i].t) * sig.path[i].r;
-                let py = this.brainPos.y + Math.sin(sig.path[i].t) * sig.path[i].r;
-                this.ctx.lineTo(px, py);
-            }
-            this.ctx.lineTo(curX, curY);
-            this.ctx.stroke();
-            this.ctx.shadowBlur = 0;
-
-            // 3. Draw signal head (leading the trail)
-            this.ctx.beginPath();
-            this.ctx.strokeStyle = sig.color;
-            this.ctx.lineWidth = sig.width + 4;
-            this.ctx.lineCap = 'round';
-            this.ctx.shadowBlur = 30;
-            this.ctx.shadowColor = sig.color;
-
-            const headTailLen = 0.05;
-            const prevHeadProgress = Math.max(0, segProgress - headTailLen);
-            const prevHeadX = this.brainPos.x + Math.cos(p1.t + (p2.t - p1.t) * prevHeadProgress) * (p1.r + (p2.r - p1.r) * prevHeadProgress);
-            const prevHeadY = this.brainPos.y + Math.sin(p1.t + (p2.t - p1.t) * prevHeadProgress) * (p1.r + (p2.r - p1.r) * prevHeadProgress);
-
-            this.ctx.moveTo(curX, curY);
-            this.ctx.lineTo(prevHeadX, prevHeadY);
-            this.ctx.stroke();
-            this.ctx.shadowBlur = 0;
+            this.ctx.fillStyle = '#00f0ff';
+            this.ctx.arc(curX, curY, sig.width / 2 + 1, 0, Math.PI * 2);
+            this.ctx.fill();
         });
     }
 
