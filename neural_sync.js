@@ -33,38 +33,44 @@ class NeuralSyncAnimation {
         this.optoPos = { x: this.width * 0.5, y: this.height * 0.5 };
         const coreX = this.width * 0.85;
 
-        // 1. Create 10 Neural Cores
+        // 1. Create 100 Neural Cores (Mass Scaling)
         this.cores = [];
-        const coreSpacing = this.height * 0.7 / 9;
-        const startY = this.height * 0.15;
-        for (let i = 0; i < 10; i++) {
-            this.cores.push({ x: coreX, y: startY + i * coreSpacing, id: i });
+        const coreRows = 20;
+        const coreCols = 5;
+        const colSpacing = 15;
+        const rowSpacing = this.height * 0.8 / coreRows;
+
+        for (let i = 0; i < 100; i++) {
+            const row = i % coreRows;
+            const col = Math.floor(i / coreRows);
+            this.cores.push({
+                x: coreX + col * colSpacing,
+                y: (this.height * 0.1) + row * rowSpacing,
+                id: i
+            });
         }
 
-        // 2. Create 100 Engineered Tracks (Electrical Stage: Core -> Coupler)
+        // 2. Create 100 Engineered Tracks
         this.tracks = [];
         this.cores.forEach((core, coreIdx) => {
-            for (let j = 0; j < 10; j++) {
-                const wireIdx = coreIdx * 10 + j;
-                const stepOut = 50 + j * 4;
-                const busX = coreX - 100 - (wireIdx * 1.5);
-                const targetY = this.optoPos.y + (wireIdx - 50) * 2;
+            const wireIdx = coreIdx;
+            const stepOut = 30 + (coreIdx % 10) * 3;
+            const busX = coreX - 60 - (wireIdx * 0.6);
+            const targetY = this.optoPos.y + (wireIdx - 50) * 1.5;
 
-                this.tracks.push({
-                    type: 'electrical',
-                    points: [
-                        { x: core.x, y: core.y },
-                        { x: core.x - stepOut, y: core.y },
-                        { x: busX, y: core.y },
-                        { x: busX, y: targetY },
-                        { x: this.optoPos.x, y: targetY }
-                    ],
-                    targetY: targetY,
-                    // Random brain penetration: Target coordinates inside the brain image
-                    brainTargetX: this.brainPos.x + (Math.random() - 0.5) * 120,
-                    brainTargetY: this.brainPos.y + (Math.random() - 0.5) * 140
-                });
-            }
+            this.tracks.push({
+                type: 'electrical',
+                points: [
+                    { x: core.x, y: core.y },
+                    { x: core.x - stepOut, y: core.y },
+                    { x: busX, y: core.y },
+                    { x: busX, y: targetY },
+                    { x: this.optoPos.x, y: targetY }
+                ],
+                targetY: targetY,
+                brainTargetX: this.brainPos.x + (Math.random() - 0.5) * 130,
+                brainTargetY: this.brainPos.y + (Math.random() - 0.5) * 160
+            });
         });
     }
 
@@ -109,10 +115,10 @@ class NeuralSyncAnimation {
     // drawCores method removed
 
     drawInfrastructure() {
-        // Draw Electrical Tracks (Right to Middle)
+        // Draw Electrical Tracks (Subtle high-density bus)
         this.ctx.beginPath();
-        this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
-        this.ctx.lineWidth = 0.6;
+        this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.03)';
+        this.ctx.lineWidth = 0.4;
         this.tracks.forEach(track => {
             this.ctx.moveTo(track.points[0].x, track.points[0].y);
             for (let i = 1; i < track.points.length; i++) {
@@ -121,27 +127,15 @@ class NeuralSyncAnimation {
         });
         this.ctx.stroke();
 
-        // Draw Optical Links (Middle to Left) - Fading into random brain targets
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
-        this.ctx.lineWidth = 0.8;
-        this.tracks.forEach(track => {
-            this.ctx.moveTo(this.optoPos.x, track.targetY);
-            this.ctx.lineTo(track.brainTargetX, track.brainTargetY);
-        });
-        this.ctx.stroke();
-
-        // Draw 10 Cores
+        // 100 Cores Visualization
         this.cores.forEach(core => {
-            this.ctx.fillStyle = 'rgba(0, 240, 255, 0.15)';
-            this.ctx.fillRect(core.x - 10, core.y - 10, 20, 20);
-            this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.4)';
-            this.ctx.strokeRect(core.x - 10, core.y - 10, 20, 20);
+            this.ctx.fillStyle = 'rgba(0, 240, 255, 0.1)';
+            this.ctx.fillRect(core.x - 3, core.y - 3, 6, 6);
 
-            const pulse = Math.sin(Date.now() * 0.003 + core.id) * 0.5 + 0.5;
-            if (pulse > 0.8) {
+            const pulse = Math.sin(Date.now() * 0.005 + core.id) * 0.5 + 0.5;
+            if (pulse > 0.85) {
                 this.ctx.fillStyle = '#00f0ff';
-                this.ctx.fillRect(core.x - 3, core.y - 3, 6, 6);
+                this.ctx.fillRect(core.x - 1, core.y - 1, 2, 2);
             }
         });
     }
@@ -185,13 +179,13 @@ class NeuralSyncAnimation {
 
                 this.ctx.beginPath();
                 this.ctx.fillStyle = sig.color;
-                this.ctx.shadowBlur = 8;
+                this.ctx.shadowBlur = 6;
                 this.ctx.shadowColor = sig.direction === 'toBrain' ? '#00f0ff' : '#fff';
                 this.ctx.arc(x, y, sig.width, 0, Math.PI * 2);
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
             } else {
-                // Optical Stage
+                // Optical State: Narrow White Pulses
                 const startX = this.optoPos.x;
                 const startY = sig.track.targetY;
                 const endX = sig.track.brainTargetX;
@@ -203,20 +197,22 @@ class NeuralSyncAnimation {
                 const curX = startX + (endX - startX) * t;
                 const curY = startY + (endY - startY) * t;
 
+                // Main pulse beam (narrow, subtle trail)
                 this.ctx.beginPath();
-                this.ctx.strokeStyle = sig.color;
-                this.ctx.lineWidth = sig.width * (sig.direction === 'toBrain' ? 1.5 : 2);
-                this.ctx.shadowBlur = 10;
-                this.ctx.shadowColor = '#fff';
+                this.ctx.strokeStyle = `rgba(255, 255, 255, ${sig.direction === 'toBrain' ? 0.2 * (1 - sig.progress) : 0.2 * sig.progress})`;
+                this.ctx.lineWidth = sig.width * 0.4;
                 this.ctx.moveTo(sig.direction === 'toBrain' ? startX : endX, sig.direction === 'toBrain' ? startY : endY);
                 this.ctx.lineTo(curX, curY);
                 this.ctx.stroke();
-                this.ctx.shadowBlur = 0;
 
+                // Bright pulse head (small but intense)
                 this.ctx.beginPath();
                 this.ctx.fillStyle = `rgba(255, 255, 255, ${sig.direction === 'toBrain' ? 1 - sig.progress : sig.progress})`;
-                this.ctx.arc(curX, curY, sig.width * 1.5, 0, Math.PI * 2);
+                this.ctx.shadowBlur = 8;
+                this.ctx.shadowColor = '#fff';
+                this.ctx.arc(curX, curY, sig.width * 0.6, 0, Math.PI * 2);
                 this.ctx.fill();
+                this.ctx.shadowBlur = 0;
             }
         });
     }
@@ -224,8 +220,9 @@ class NeuralSyncAnimation {
     animate() {
         this.ctx.clearRect(0, 0, this.width, this.height);
 
-        if (this.signals.length < 60) {
-            for (let i = 0; i < 2; i++) this.spawnSignal();
+        // Adjust signal load for 100 cores
+        if (this.signals.length < 120) {
+            for (let i = 0; i < 4; i++) this.spawnSignal();
         }
 
         this.drawInfrastructure();
