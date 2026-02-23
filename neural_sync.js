@@ -94,7 +94,7 @@ class NeuralSyncAnimation {
     spawnSignal() {
         if (this.tracks.length === 0) return;
         const track = this.tracks[Math.floor(Math.random() * this.tracks.length)];
-        const toBrain = Math.random() > 0.4; // 60% towards brain, 40% towards core
+        const toBrain = Math.random() > 0.45;
 
         this.signals.push({
             track,
@@ -102,8 +102,8 @@ class NeuralSyncAnimation {
             stage: toBrain ? 'electrical' : 'optical',
             progress: 0,
             speed: 0.005 + Math.random() * 0.01,
-            width: 1.2 + Math.random() * 2,
-            color: toBrain ? '#00f0ff' : 'rgba(255, 255, 255, 0.9)'
+            width: 1.0 + Math.random() * 1.5,
+            color: toBrain ? '#00f0ff' : '#ff00ff' // Cyan for Machine, Magenta for Brain
         });
     }
 
@@ -148,13 +148,13 @@ class NeuralSyncAnimation {
                 if (sig.direction === 'toBrain' && sig.stage === 'electrical') {
                     sig.stage = 'optical';
                     sig.progress = 0;
-                    sig.speed *= 1.4;
-                    sig.color = 'rgba(255, 255, 255, 0.9)';
+                    sig.speed *= 1.3;
+                    sig.color = '#e0ffff'; // Optical Cyan-White
                 } else if (sig.direction === 'toCore' && sig.stage === 'optical') {
                     sig.stage = 'electrical';
                     sig.progress = 0;
-                    sig.speed *= 0.7;
-                    sig.color = '#00f0ff';
+                    sig.speed *= 0.8;
+                    sig.color = '#ff00ff'; // Returning Magenta
                 } else {
                     this.signals.splice(index, 1);
                     return;
@@ -180,7 +180,7 @@ class NeuralSyncAnimation {
                 this.ctx.beginPath();
                 this.ctx.fillStyle = sig.color;
                 this.ctx.shadowBlur = 6;
-                this.ctx.shadowColor = sig.direction === 'toBrain' ? '#00f0ff' : '#fff';
+                this.ctx.shadowColor = sig.color;
                 this.ctx.arc(x, y, sig.width, 0, Math.PI * 2);
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
@@ -200,18 +200,20 @@ class NeuralSyncAnimation {
                 // Discrete Pulse Head (Narrow & Sharp)
                 this.ctx.beginPath();
                 const alpha = sig.direction === 'toBrain' ? (1 - sig.progress) : sig.progress;
-                this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.9})`;
-                this.ctx.shadowBlur = 5;
-                this.ctx.shadowColor = '#fff';
+                const headColor = sig.direction === 'toBrain' ? '224, 255, 255' : '255, 0, 255';
+
+                this.ctx.fillStyle = `rgba(${headColor}, ${alpha * 0.9})`;
+                this.ctx.shadowBlur = 6;
+                this.ctx.shadowColor = sig.color;
                 this.ctx.arc(curX, curY, sig.width * 0.5, 0, Math.PI * 2);
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
 
-                // Optional: Tiny localized trail (not connected to source)
+                // Tiny localized trail
                 this.ctx.beginPath();
-                this.ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.3})`;
+                this.ctx.strokeStyle = `rgba(${headColor}, ${alpha * 0.3})`;
                 this.ctx.lineWidth = sig.width * 0.3;
-                const trailLen = 15;
+                const trailLen = 12;
                 const angle = Math.atan2(endY - startY, endX - startX) * (sig.direction === 'toBrain' ? 1 : -1);
                 this.ctx.moveTo(curX, curY);
                 this.ctx.lineTo(curX - Math.cos(angle) * trailLen, curY - Math.sin(angle) * trailLen);
@@ -223,9 +225,9 @@ class NeuralSyncAnimation {
     animate() {
         this.ctx.clearRect(0, 0, this.width, this.height);
 
-        // Adjust signal load for 100 cores
-        if (this.signals.length < 120) {
-            for (let i = 0; i < 4; i++) this.spawnSignal();
+        // High load for 100 cores
+        if (this.signals.length < 150) {
+            for (let i = 0; i < 5; i++) this.spawnSignal();
         }
 
         this.drawInfrastructure();
