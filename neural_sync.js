@@ -149,12 +149,12 @@ class NeuralSyncAnimation {
                     sig.stage = 'optical';
                     sig.progress = 0;
                     sig.speed *= 1.3;
-                    sig.color = '#e0ffff'; // Optical Cyan-White
+                    sig.color = '#ff80ff'; // Optical Magenta-White
                 } else if (sig.direction === 'toCore' && sig.stage === 'optical') {
                     sig.stage = 'electrical';
                     sig.progress = 0;
                     sig.speed *= 0.8;
-                    sig.color = '#ff00ff'; // Returning Magenta
+                    sig.color = '#00f0ff'; // Returning Cyan to Cores
                 } else {
                     this.signals.splice(index, 1);
                     return;
