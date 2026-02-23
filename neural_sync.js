@@ -59,7 +59,10 @@ class NeuralSyncAnimation {
                         { x: busX, y: targetY },
                         { x: this.optoPos.x, y: targetY }
                     ],
-                    targetY: targetY // For optical stage handover
+                    targetY: targetY,
+                    // Random brain penetration: Target coordinates inside the brain image
+                    brainTargetX: this.brainPos.x + (Math.random() - 0.5) * 120,
+                    brainTargetY: this.brainPos.y + (Math.random() - 0.5) * 140
                 });
             }
         });
@@ -116,13 +119,13 @@ class NeuralSyncAnimation {
         });
         this.ctx.stroke();
 
-        // Draw Optical Links (Middle to Left)
+        // Draw Optical Links (Middle to Left) - Fading into random brain targets
         this.ctx.beginPath();
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.02)';
+        this.ctx.lineWidth = 0.8;
         this.tracks.forEach(track => {
             this.ctx.moveTo(this.optoPos.x, track.targetY);
-            this.ctx.lineTo(this.brainPos.x + 80, track.targetY); // Link to brain boundary
+            this.ctx.lineTo(track.brainTargetX, track.brainTargetY);
         });
         this.ctx.stroke();
 
@@ -186,26 +189,29 @@ class NeuralSyncAnimation {
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
             } else {
-                // Optical State (Straight line beam)
+                // Optical State (Direct beam into random brain target)
                 const startX = this.optoPos.x;
-                const endX = this.brainPos.x + 100;
-                const curX = startX - (startX - endX) * sig.progress;
-                const curY = sig.track.targetY;
+                const startY = sig.track.targetY;
+                const endX = sig.track.brainTargetX;
+                const endY = sig.track.brainTargetY;
+
+                const curX = startX + (endX - startX) * sig.progress;
+                const curY = startY + (endY - startY) * sig.progress;
 
                 this.ctx.beginPath();
                 this.ctx.strokeStyle = sig.color;
-                this.ctx.lineWidth = sig.width * 2;
-                this.ctx.shadowBlur = 15;
+                this.ctx.lineWidth = sig.width * 1.5;
+                this.ctx.shadowBlur = 10;
                 this.ctx.shadowColor = '#fff';
-                this.ctx.moveTo(startX, curY);
+                this.ctx.moveTo(startX, startY);
                 this.ctx.lineTo(curX, curY);
                 this.ctx.stroke();
                 this.ctx.shadowBlur = 0;
 
-                // Light pulse head
+                // Light pulse head (fading as it enters)
                 this.ctx.beginPath();
-                this.ctx.fillStyle = '#fff';
-                this.ctx.arc(curX, curY, sig.width * 1.5, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(255, 255, 255, ${1 - sig.progress})`;
+                this.ctx.arc(curX, curY, sig.width * 1.2, 0, Math.PI * 2);
                 this.ctx.fill();
             }
         });

@@ -73,7 +73,10 @@
 #brain-image {
     width: 100%;
     height: auto;
-    filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.4)) brightness(1.1);
+    filter: drop-shadow(0 0 30px rgba(0, 240, 255, 0.5)) brightness(1.1);
+    /* Seamless blending: Radial mask to hide square edges */
+    mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
+    -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 80%);
     animation: brain-pulse 4s ease-in-out infinite;
 }
 
