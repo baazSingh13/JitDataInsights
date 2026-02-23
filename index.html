@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="neural_tech.css">
 </head>
 
 <body>
@@ -77,6 +78,21 @@
                         <h3>Bio-Embedded Systems</h3>
                         <p>Ultra-low power hardware and firmware integration for permanent, non-obtrusive neural link
                             deployment.</p>
+                    </div>
+                </div>
+
+                <!-- Neural-MCU Sync Animation Container -->
+                <div class="neural-sync-container fade-in">
+                    <div class="sync-visual-wrapper">
+                        <canvas id="sync-canvas"></canvas>
+                        <div class="brain-node">
+                            <img src="assets/neural_interface.png" alt="Brain Core">
+                            <div class="brain-glow"></div>
+                        </div>
+                        <div class="sync-overlay">
+                            <div class="mcu-tag">STM32N657 Core Matrix</div>
+                            <div class="sync-status">Sync Status: Optimal</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -161,6 +177,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <script src="script.js"></script>
+    <script src="neural_sync.js"></script>
 </body>
 
 </html>
