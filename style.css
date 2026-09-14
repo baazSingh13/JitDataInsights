@@ -431,7 +431,7 @@ section {
   transform: scale(1.05);
 }
 
-/* Direct email contact */
+/* Email inquiry form */
 .contact-card {
   max-width: 700px;
   margin: 0 auto;
@@ -439,20 +439,28 @@ section {
   padding: 4rem;
   border-radius: 32px;
   border: 1px solid var(--glass-border);
-  text-align: center;
 }
 .contact-card h3 { font-size: 1.6rem; margin-bottom: 1rem; }
 .contact-card > p { color: var(--text-secondary); }
-.contact-email {
-  display: block;
-  margin: 1.5rem 0;
-  color: var(--accent-cyan);
-  font-size: 1.1rem;
-  overflow-wrap: anywhere;
-  text-decoration: underline;
-  text-underline-offset: .25em;
+.contact-intro { margin-bottom: 2rem; }
+.contact-card label { display: block; font-weight: 500; margin-bottom: .5rem; }
+.contact-card input:not([type="hidden"]), .contact-card textarea {
+  width: 100%;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font: inherit;
 }
-.contact-help { margin-top: 1.5rem; font-size: .85rem; }
+.contact-card textarea { resize: vertical; min-height: 150px; }
+.contact-card input:focus-visible, .contact-card textarea:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
+.contact-card .btn { margin-top: 1.5rem; }
+.contact-help { margin-top: 1rem; font-size: .85rem; }
+.contact-help a { color: var(--accent-cyan); text-decoration: underline; text-underline-offset: .25em; }
+.contact-email { overflow-wrap: anywhere; }
+.contact-honeypot { display: none; }
 
 /* Footer */
 footer {

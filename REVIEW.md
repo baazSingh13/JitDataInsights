@@ -1,3 +1,13 @@
+# Website message delivery — 14 September 2026
+
+The owner clarified that typed website messages must be emailed after selecting Send. Restored the inquiry form and pointed its HTTPS POST to FormSubmit for **workwithharpreetsingh@gmail.com**. Project and partnership links lead to this form; direct email remains a fallback. The native form works without JavaScript, preserves provider spam checks, includes a honeypot and discloses the relay to visitors.
+
+Recipient activation and a confirmed inbox test are required before claiming live delivery. Setup and production-origin verification steps are in README.md. Earlier entries below are historical and are superseded by this contact flow.
+
+Verification: the recipient was activated through the confirmation email. A fresh message submitted through the local website arrived in the intended Gmail inbox with its complete body and Reply-To header. Both JavaScript syntax checks and all 6 DOM tests passed; the 10-file build completed. The restored form was visually checked at 320px and 1440px without horizontal overflow. The existing GitHub Pages workflow was also corrected to build and upload only `dist/`.
+
+---
+
 # Direct email update — 14 September 2026
 
 Replaced the Firebase inquiry form with direct email contact at **workwithharpreetsingh@gmail.com**, at the owner's request. The contact card displays a copyable address and an **Email Harpreet** link; project, FPGA integration and partnership buttons also open email drafts with relevant subjects. Sending remains an explicit action in the visitor's email service.

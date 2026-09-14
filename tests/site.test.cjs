@@ -81,23 +81,28 @@ test('without IntersectionObserver, content stays visible', t => {
   assert.equal(document.querySelectorAll('.reveal-pending').length, 0);
 });
 
-test('direct email links and navigation work without JavaScript', () => {
+test('email form validates fields and submits to the intended recipient without JavaScript', () => {
   const dom = new JSDOM(html);
   try {
     const document = dom.window.document;
-    assert.equal(document.querySelector('form'), null);
+    const form = document.getElementById('contact-form');
+    assert.equal(form.action, 'https://formsubmit.co/workwithharpreetsingh@gmail.com');
+    assert.equal(form.method, 'post');
+    assert.equal(form.noValidate, false);
+    assert.equal(form.checkValidity(), false, 'empty messages cannot be submitted');
+    for (const input of form.querySelectorAll('input:not([type="hidden"]),textarea')) assert.ok(input.labels.length, input.id);
+    form.elements.name.value = 'Website test';
+    form.elements.email.value = 'invalid';
+    form.elements.message.value = 'A question about FPGA integration.';
+    assert.equal(form.checkValidity(), false, 'invalid email must be rejected');
+    form.elements.email.value = 'test@example.com';
+    assert.equal(form.checkValidity(), true);
+    assert.equal(new dom.window.FormData(form).get('message'), 'A question about FPGA integration.');
+    assert.equal(form.querySelector('[name="_captcha"][value="false"]'), null, 'keep the provider spam check');
+    assert.equal(form.querySelector('[name="_cc"],[name="_autoresponse"]'), null, 'no extra recipients or automatic visitor replies');
+    assert.equal(document.querySelector('.contact-email').getAttribute('href'), 'mailto:workwithharpreetsingh@gmail.com');
     assert.equal(document.querySelector('.mobile-menu-btn').hidden, true);
     assert.equal(document.querySelectorAll('#primary-navigation a').length, 6);
-    const links = [...document.querySelectorAll('a[href^="mailto:"]')];
-    assert.equal(links.length, 5, 'all project buttons and contact links use email');
-    for (const link of links) {
-      const url = new URL(link.href);
-      assert.equal(url.pathname, 'workwithharpreetsingh@gmail.com');
-      assert.equal(url.searchParams.get('bcc'), null);
-      assert.equal(url.searchParams.get('cc'), null);
-    }
-    assert.equal(document.querySelector('.contact-email').textContent, 'workwithharpreetsingh@gmail.com');
-    assert.match(document.getElementById('email-help').textContent, /Opens your email app/);
   } finally {
     dom.window.close();
   }

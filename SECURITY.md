@@ -2,7 +2,7 @@
 
 ## Scope
 
-This repository contains a static website with direct email contact links. It does not contain the neural accelerator implementation or an IP license service. The maintained website source is on the repository's main branch; no historical version support matrix is claimed.
+This repository contains a static website with a contact form using the FormSubmit email relay. It does not contain the neural accelerator implementation or an IP license service. The maintained website source is on the repository's main branch; no historical version support matrix is claimed.
 
 ## Reporting an issue
 
@@ -12,6 +12,6 @@ The owner should establish a monitored security contact before production launch
 
 ## Deployment responsibilities
 
-The current site has no contact backend. Email links open the visitor's email app; the visitor sends the message through their email provider. No website form submission or database write is involved. Historical Firebase configuration and data were not changed or deleted; any existing backend remains the owner's responsibility. Review the deployment notes in README.md before publishing.
+The contact form posts visitor names, email addresses and messages to FormSubmit for delivery to the configured owner address. Default provider reCAPTCHA is retained; the browser also checks required fields and email syntax. Browser validation is usability protection, not server authorization. Do not disable provider abuse controls or add arbitrary recipients. The page discloses the external relay. Review FormSubmit retention and verify actual delivery after activation using README.md. Historical Firebase services and stored messages were not changed or deleted.
 
 Keep service-account files, private keys, AMD license files, model weights and owner IP archives out of this repository and its deployment directory.
