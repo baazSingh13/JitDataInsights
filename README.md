@@ -25,17 +25,17 @@ npm run check
 
 This checks JavaScript syntax, runs 6 DOM regression tests for navigation, accessibility fallbacks and the email form, and builds `dist/`. Tests do not send email or make external requests. `npm ci` needs internet on its first run; later tests use the installed local dependencies. Supported test runtimes are Node 22.22.2+, 24.15+ or 26+ as specified in `package.json`.
 
-`npm run build` regenerates only `dist/`, using an explicit list of 10 public assets. It excludes Git metadata, tests, dependency folders, internal review notes and the unused background image. The existing GitHub Pages workflow now builds and publishes `dist/` when `main` changes. The public site is https://baazsingh13.github.io/JitDataInsights/.
+`npm run build` regenerates only `dist/`, using an explicit list of 11 public files. It excludes Git metadata, tests, dependency folders, internal review notes and the unused background image. The existing GitHub Pages workflow now builds and publishes `dist/` when `main` changes. The public site is https://baazsingh13.github.io/JitDataInsights/.
 
 ## Website messages delivered by email
 
 Visitors type their name, email address and message, then select **Send Message**. The form posts over HTTPS to FormSubmit, which relays the inquiry to **workwithharpreetsingh@gmail.com**. The visitor does not need to open their email app. Project, FPGA integration and partnership buttons lead to the form. A direct email link remains as an alternative.
 
-The form uses native browser validation and works without JavaScript. FormSubmit handles the spam check and submission confirmation on its page. Its default reCAPTCHA remains enabled and an additional honeypot is included. There are no CC recipients or automatic replies to visitors. The visitor's `email` field supplies Reply-To so Harpreet can reply from his inbox.
+The form uses native browser validation and works without JavaScript. FormSubmit handles the spam check, then redirects to `thanks.html` on the public website. Its default reCAPTCHA remains enabled and an additional honeypot is included. There are no CC recipients or automatic replies to visitors. The visitor's `email` field supplies Reply-To so Harpreet can reply from his inbox. If the production URL changes, update the form's absolute `_next` URL too.
 
 ### Activate delivery once
 
-The receiving address was activated on 14 September 2026, and a message submitted through the local website was confirmed in the destination inbox, including its full body and Reply-To header. The steps below are retained for future setup or a new website origin.
+Delivery was activated for both the local preview and public website on 14 September 2026. Messages submitted through each were confirmed in the destination inbox, including their full bodies and Reply-To headers. The steps below are retained for future setup or a new website origin.
 
 1. Open the website through its deployed URL or `npm start` (not a `file://` URL).
 2. Submit one clearly labelled setup message and complete the provider's spam check if shown.
@@ -51,6 +51,7 @@ Do not add service-account keys, private keys, license files, trained weights or
 ## Files
 
 - `index.html`: company content, email inquiry form and metadata.
+- `thanks.html`: submission confirmation with working links back to the site.
 - `style.css`, `neural_tech.css`: responsive layout and animation presentation.
 - `script.js`, `neural_sync.js`: navigation and bounded canvas animations.
 - `assets/`: original images and the new SVG favicon.

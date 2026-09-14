@@ -461,6 +461,9 @@ section {
 .contact-help a { color: var(--accent-cyan); text-decoration: underline; text-underline-offset: .25em; }
 .contact-email { overflow-wrap: anywhere; }
 .contact-honeypot { display: none; }
+.confirmation-page main { min-height: 100vh; display: flex; align-items: center; padding-top: 3rem; padding-bottom: 3rem; }
+.confirmation-page .contact-card { text-align: center; width: 100%; }
+.confirmation-page h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); margin: 1rem 0; }
 
 /* Footer */
 footer {

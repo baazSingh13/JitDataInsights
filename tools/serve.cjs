@@ -3,7 +3,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
-const publicFiles = new Set(['index.html', 'style.css', 'neural_tech.css', 'script.js', 'neural_sync.js',
+const publicFiles = new Set(['index.html', 'thanks.html', 'style.css', 'neural_tech.css', 'script.js', 'neural_sync.js',
   'assets/favicon.svg', 'assets/brain_anatomy.png', 'assets/neural_interface.jpg', 'assets/gurjit.jpg', 'assets/harpreet.jpg']);
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg' };
 const port = Number(process.env.PORT || 8765);

@@ -88,6 +88,10 @@ test('email form validates fields and submits to the intended recipient without 
     const form = document.getElementById('contact-form');
     assert.equal(form.action, 'https://formsubmit.co/workwithharpreetsingh@gmail.com');
     assert.equal(form.method, 'post');
+    assert.equal(form.elements._next.value, 'https://baazsingh13.github.io/JitDataInsights/thanks.html');
+    const thanks = new JSDOM(fs.readFileSync(path.join(root, 'thanks.html'), 'utf8'), { url: form.elements._next.value });
+    assert.equal(thanks.window.document.querySelector('.btn').href, 'https://baazsingh13.github.io/JitDataInsights/index.html#home');
+    thanks.window.close();
     assert.equal(form.noValidate, false);
     assert.equal(form.checkValidity(), false, 'empty messages cannot be submitted');
     for (const input of form.querySelectorAll('input:not([type="hidden"]),textarea')) assert.ok(input.labels.length, input.id);

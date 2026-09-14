@@ -6,6 +6,8 @@ Recipient activation and a confirmed inbox test are required before claiming liv
 
 Verification: the recipient was activated through the confirmation email. A fresh message submitted through the local website arrived in the intended Gmail inbox with its complete body and Reply-To header. Both JavaScript syntax checks and all 6 DOM tests passed; the 10-file build completed. The restored form was visually checked at 320px and 1440px without horizontal overflow. The existing GitHub Pages workflow was also corrected to build and upload only `dist/`.
 
+Public delivery was then activated and independently verified in the same inbox. The deployed form sent the complete test message with the correct Reply-To header. Added a branded `thanks.html` page and the provider's `_next` setting so the confirmation links return to this repository's website rather than the GitHub account root. The final build contains 11 public files.
+
 ---
 
 # Direct email update — 14 September 2026
