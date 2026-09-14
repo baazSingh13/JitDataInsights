@@ -1,3 +1,15 @@
+# Direct email update — 14 September 2026
+
+Replaced the Firebase inquiry form with direct email contact at **workwithharpreetsingh@gmail.com**, at the owner's request. The contact card displays a copyable address and an **Email Harpreet** link; project, FPGA integration and partnership buttons also open email drafts with relevant subjects. Sending remains an explicit action in the visitor's email service.
+
+Removed the Firebase SDK loader, project configuration, form logic and unused form styling. Updated the documentation and existing regression suite for the current contact flow. Historical Firebase services and stored messages were not modified.
+
+Verification: both JavaScript syntax checks and all 6 DOM tests passed; the build generated 10 public files. Browser inspection confirmed all 5 email links target the requested address, with no horizontal overflow at 320px and 1440px and no recorded browser warnings or errors. No test email was sent.
+
+The earlier review below describes the original changes. Its Firebase form behavior and 13-test count are historical; the current suite has 6 tests. The earlier changes were merged in GitHub PR #1. Production hosting has not been verified.
+
+---
+
 # Website review — 13 September 2026
 
 Source: https://github.com/baazSingh13/JitDataInsights
@@ -26,7 +38,7 @@ Baseline commit: `5484f2a`; local working branch: `codex/website-review`.
 - Browser checks at 320, 390, 768, 800, 801, 1024 and 1440 pixels found no horizontal overflow. Mobile menu, section links, animation pause, image loading and desktop/mobile form layouts were reviewed. The real Firebase SDK initialized to the ready state; no live messages were submitted. No browser errors or warnings were recorded during the updated-page review.
 - Nine HTTP checks passed against the preview server, including rejection of Git metadata, owner notes, traversal attempts and POST requests.
 
-## Remaining operational work
+## Remaining operational work at the original review (historical)
 
 - Confirm Firestore rules, App Check/abuse controls, retention and the process for monitoring incoming inquiries. The repository did not contain those live settings; no production messages were sent.
 - An acknowledged Firestore write does not send an email. Configure a notification workflow separately if required.
@@ -34,4 +46,4 @@ Baseline commit: `5484f2a`; local working branch: `codex/website-review`.
 - Add a canonical URL and absolute social preview image once the production website URL is chosen.
 - FPGA encrypted releases, target-board qualification and customer licensing remain separate work. No private accelerator source, weights, datasheets or architecture book have been added to the public website.
 
-Changes are proposed on a review branch. No production website, Firebase settings or default GitHub branch were updated by this work.
+The original review was subsequently merged into main through PR #1. No manual production deployment or Firebase settings update was performed.

@@ -6,10 +6,9 @@ const { JSDOM } = require('jsdom');
 const root = path.resolve(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const script = fs.readFileSync(path.join(root, 'script.js'), 'utf8');
-const flush = () => new Promise(resolve => setImmediate(resolve));
 
 function setup(t, options = {}) {
-  // No resource loader: tests cannot load the SDK or reach the real Firebase project.
+  // No resource loader: tests do not make external requests.
   const dom = new JSDOM(html, { url: 'http://localhost/', runScripts: 'outside-only', pretendToBeVisual: true });
   t.after(() => dom.window.close());
   const window = dom.window;
@@ -24,38 +23,13 @@ function setup(t, options = {}) {
     return media.get(query);
   };
   window.HTMLCanvasElement.prototype.getContext = () => null;
-  const calls = [];
-  if (!options.noSDK) {
-    const firestore = () => ({ collection: name => ({ add: values => {
-      calls.push({ name, values });
-      return options.write ? options.write(values) : Promise.resolve({ id: 'mock-only' });
-    } }) });
-    firestore.FieldValue = { serverTimestamp: () => 'SERVER_TIMESTAMP' };
-    window.firebase = { apps: [], initializeApp: () => window.firebase.apps.push({}), firestore };
-  }
-  if (options.offline) Object.defineProperty(window.navigator, 'onLine', { value: false });
-  const delays = new Map();
-  if (options.captureTimers) {
-    window.setTimeout = (fn, delay) => { delays.set(delay, fn); return delay; };
-    window.clearTimeout = delay => delays.delete(delay);
-  }
   window.eval(script);
   const document = window.document;
   const get = id => document.getElementById(id);
-  function fill(name = ' Test User ', email = 'test@example.com', message = ' Please discuss FPGA integration. ') {
-    get('contact-name').value = name;
-    get('contact-email').value = email;
-    get('contact-message').value = message;
-  }
-  function submit() {
-    const event = new window.Event('submit', { bubbles: true, cancelable: true });
-    get('contact-form').dispatchEvent(event);
-    return event;
-  }
-  return { window, document, get, calls, fill, submit, media, delays };
+  return { window, document, get, media };
 }
 
-test('all local links/assets resolve and controls have labels', t => {
+test('all local links/assets resolve and the page has unique headings and IDs', t => {
   const { document } = setup(t);
   const ids = [...document.querySelectorAll('[id]')].map(element => element.id);
   assert.equal(new Set(ids).size, ids.length, 'duplicate IDs');
@@ -65,7 +39,6 @@ test('all local links/assets resolve and controls have labels', t => {
     const target = element.getAttribute('src') || element.getAttribute('href');
     if (!target.startsWith('https:')) assert.ok(fs.existsSync(path.join(root, target)), target);
   }
-  for (const input of document.querySelectorAll('input,textarea')) assert.ok(input.labels.length > 0, input.id);
 });
 
 test('mobile navigation exposes state, closes with Escape and restores focus', t => {
@@ -103,91 +76,29 @@ test('reduced motion is respected and the pause control is reversible', t => {
   assert.ok(document.documentElement.classList.contains('motion-paused'));
 });
 
-test('without IntersectionObserver, content stays visible and the contact form initializes', t => {
+test('without IntersectionObserver, content stays visible', t => {
   const { document, get } = setup(t, { reducedMotion: false });
   assert.equal(document.querySelectorAll('.reveal-pending').length, 0);
-  assert.equal(get('contact-fields').disabled, false);
 });
 
-test('no-JavaScript markup disables submission and retains every navigation destination', () => {
+test('direct email links and navigation work without JavaScript', () => {
   const dom = new JSDOM(html);
-  assert.equal(dom.window.document.getElementById('contact-fields').disabled, true);
-  assert.equal(dom.window.document.querySelector('.mobile-menu-btn').hidden, true);
-  assert.equal(dom.window.document.querySelectorAll('#primary-navigation a').length, 6);
-  assert.ok(dom.window.document.querySelector('noscript').textContent.includes('JavaScript'));
-  dom.window.close();
-});
-
-test('successful contact submission trims values, preserves the server schema and resets after acknowledgement', async t => {
-  const { fill, submit, get, calls } = setup(t);
-  fill();
-  assert.ok(submit().defaultPrevented);
-  assert.equal(get('contact-fields').disabled, true);
-  await flush();
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0].name, 'contacts');
-  assert.deepEqual(JSON.parse(JSON.stringify(calls[0].values)), {
-    name: 'Test User', email: 'test@example.com', message: 'Please discuss FPGA integration.', timestamp: 'SERVER_TIMESTAMP'
-  });
-  assert.equal(get('contact-name').value, '');
-  assert.equal(get('form-status').dataset.state, 'success');
-  assert.equal(get('contact-fields').disabled, false);
-});
-
-test('whitespace, short messages and invalid email addresses never write', async t => {
-  const { fill, submit, calls } = setup(t);
-  for (const values of [[' ', 'test@example.com', 'Valid message here'], ['Name', 'invalid', 'Valid message here'], ['Name', 'test@example.com', '     short     ']]) {
-    fill(...values); submit(); await flush();
+  try {
+    const document = dom.window.document;
+    assert.equal(document.querySelector('form'), null);
+    assert.equal(document.querySelector('.mobile-menu-btn').hidden, true);
+    assert.equal(document.querySelectorAll('#primary-navigation a').length, 6);
+    const links = [...document.querySelectorAll('a[href^="mailto:"]')];
+    assert.equal(links.length, 5, 'all project buttons and contact links use email');
+    for (const link of links) {
+      const url = new URL(link.href);
+      assert.equal(url.pathname, 'workwithharpreetsingh@gmail.com');
+      assert.equal(url.searchParams.get('bcc'), null);
+      assert.equal(url.searchParams.get('cc'), null);
+    }
+    assert.equal(document.querySelector('.contact-email').textContent, 'workwithharpreetsingh@gmail.com');
+    assert.match(document.getElementById('email-help').textContent, /Opens your email app/);
+  } finally {
+    dom.window.close();
   }
-  assert.equal(calls.length, 0);
-});
-
-test('overlong input is rejected even when assigned programmatically', async t => {
-  const { fill, submit, calls } = setup(t);
-  fill('Name', 'test@example.com', 'x'.repeat(5001)); submit(); await flush();
-  assert.equal(calls.length, 0);
-});
-
-test('offline submission preserves text and does not enqueue a write', async t => {
-  const { fill, submit, get, calls } = setup(t, { offline: true });
-  fill(); submit(); await flush();
-  assert.equal(calls.length, 0);
-  assert.match(get('form-status').textContent, /offline/);
-  assert.ok(get('contact-message').value.length > 0);
-});
-
-test('write failure preserves input, permits retry and does not expose backend error details', async t => {
-  const { fill, submit, get, calls } = setup(t, { write: () => Promise.reject(new Error('private backend detail')) });
-  fill(); submit(); await flush();
-  assert.equal(calls.length, 1);
-  assert.equal(get('form-status').dataset.state, 'error');
-  assert.ok(!get('form-status').textContent.includes('private backend detail'));
-  assert.ok(get('contact-name').value.includes('Test User'));
-  assert.equal(get('contact-fields').disabled, false);
-});
-
-test('pending acknowledgement prevents duplicate submissions, including after the slow-network notice', async t => {
-  let acknowledge;
-  const { fill, submit, get, calls, delays } = setup(t, { captureTimers: true, write: () => new Promise(resolve => { acknowledge = resolve; }) });
-  fill(); submit(); submit();
-  delays.get(15000)();
-  assert.match(get('form-status').textContent, /waiting for confirmation/);
-  assert.equal(get('contact-fields').disabled, true);
-  submit();
-  assert.equal(calls.length, 1);
-  acknowledge(); await flush();
-  assert.equal(get('form-status').dataset.state, 'success');
-  assert.equal(get('contact-fields').disabled, false);
-});
-
-test('failed SDK load is visible, leaves the form disabled and prevents native form navigation', async t => {
-  const { document, window, get, submit, calls } = setup(t, { noSDK: true });
-  const sdkScript = document.querySelector('script[src^="https://www.gstatic.com/firebasejs/"]');
-  assert.ok(sdkScript);
-  sdkScript.dispatchEvent(new window.Event('error'));
-  await flush();
-  assert.equal(get('contact-fields').disabled, true);
-  assert.match(get('form-status').textContent, /could not load/);
-  assert.ok(submit().defaultPrevented);
-  assert.equal(calls.length, 0);
 });
