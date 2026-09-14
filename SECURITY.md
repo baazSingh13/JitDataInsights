@@ -1,21 +1,17 @@
-# Security Policy
+# Security policy
 
-## Supported Versions
+## Scope
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+This repository contains a static website and a Firebase contact-form client. It does not contain the neural accelerator implementation or an IP license service. The maintained website source is on the repository's main branch; no historical version support matrix is claimed.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+## Reporting an issue
 
-## Reporting a Vulnerability
+Use GitHub private vulnerability reporting if the repository has it enabled. Otherwise contact the repository owner privately through an established channel. If no private channel is available, request one without including vulnerability details. Do not post credentials, visitor messages, personal data or exploit details in a public issue.
 
-Use this section to tell people how to report a vulnerability.
+The owner should establish a monitored security contact before production launch. No response-time guarantee is currently published.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+## Deployment responsibilities
+
+Firebase Security Rules and abuse controls must protect the live contact database. Browser-side validation and a public Firebase project key do not establish authorization. Review the deployment notes in README.md before publishing. Contact-service writes and live rules were not tested against production during this local review.
+
+Keep service-account files, private keys, AMD license files, model weights and owner IP archives out of this repository and its deployment directory.

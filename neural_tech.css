@@ -10,15 +10,10 @@
     border-top: 1px solid var(--glass-border);
     border-bottom: 1px solid var(--glass-border);
     position: relative;
-    height: 55vh;
-    /* Reduced from 85vh */
-    /* Forced height */
-    min-height: 55vh;
-    width: 100vw;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
+    height: clamp(360px, 50vh, 520px);
+    min-height: 360px;
+    width: 100%;
+    border-radius: 24px;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -61,8 +56,8 @@
     left: 15%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 280px;
-    height: 280px;
+    width: clamp(90px, 24vw, 260px);
+    height: auto;
     z-index: 2;
     display: flex;
     align-items: center;
@@ -104,7 +99,7 @@
     font-family: 'Outfit', sans-serif;
     font-size: 0.7rem;
     font-weight: 600;
-    color: rgba(0, 240, 255, 0.7);
+    color: var(--accent-cyan);
     letter-spacing: 3px;
     writing-mode: vertical-rl;
     text-orientation: mixed;
@@ -135,20 +130,6 @@
     }
 }
 
-@keyframes brain-pulse {
-
-    0%,
-    100% {
-        filter: drop-shadow(0 0 20px rgba(0, 240, 255, 0.4)) brightness(1.1);
-        transform: scale(1);
-    }
-
-    50% {
-        filter: drop-shadow(0 0 40px rgba(0, 240, 255, 0.6)) brightness(1.2);
-        transform: scale(1.02);
-    }
-}
-
 .brain-glow {
     position: absolute;
     top: 50%;
@@ -168,11 +149,10 @@
     bottom: 2rem;
     left: 2rem;
     z-index: 10;
-    pointer-events: none;
 }
 
 .mcu-tag {
-    font-family: var(--font-display);
+    font-family: var(--font-heading);
     font-size: 0.75rem;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -240,18 +220,15 @@
     }
 }
 
-@media (max-width: 768px) {
-    .neural-sync-container {
-        min-height: 400px;
-        padding: 1rem;
-    }
 
-    .sync-visual-wrapper {
-        height: 400px;
-    }
-
-    .brain-node {
-        width: 120px;
-        height: 120px;
-    }
+.motion-toggle { display: inline-block; margin-top: .65rem; padding: .5rem .85rem; border: 1px solid var(--glass-border-bright); border-radius: 30px; background: #121a20; color: var(--text-primary); font: inherit; font-size: .8rem; cursor: pointer; }
+.sync-overlay { max-width: calc(100% - 3rem); }
+.sync-status { font-size: .8rem; opacity: 1; }
+.sync-status::before { flex-shrink: 0; }
+@media (max-width: 800px) {
+    .neural-sync-container { margin-top: 3rem; height: 360px; }
+    #opto-coupler-device { width: 55px; height: 210px; top: 43%; }
+    .brain-node { top: 43%; }
+    .sync-overlay { left: 1rem; bottom: 1rem; max-width: calc(100% - 2rem); }
+    .opto-label { font-size: .6rem; letter-spacing: 2px; }
 }
